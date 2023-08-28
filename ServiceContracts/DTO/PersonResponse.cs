@@ -27,7 +27,7 @@ namespace ServiceContracts.DTO
     
     public override string ToString()
     {
-      return $"Person ID: {PersonID}, Person Name: {PersonName}, Email: {Email}, Date Of Birth: {DateOfBirth}, Gender: {Gender}, Country ID: {CountryID}, Country: {Country}, Address: {Address}, Receive NewsLetters: {ReceiveNewsLetters}, Age: {Age}";
+      return $"Person ID: {PersonID}, Person Name: {PersonName}, Email: {Email}, Date Of Birth: {DateOfBirth?.ToString("dd MMM yyyy")}, Gender: {Gender}, Country ID: {CountryID}, Country: {Country}, Address: {Address}, Receive NewsLetters: {ReceiveNewsLetters}, Age: {Age}";
     }
 
     public override int GetHashCode()
@@ -35,11 +35,10 @@ namespace ServiceContracts.DTO
       throw new NotImplementedException();
     }
 
-    //public PersonUpdateRequest ToPersonUpdateRequest()
-    //{
-    //  //Gender won't parse if its blank so IsDefined is implemented
-    //  return new PersonUpdateRequest() { PersonID = PersonID, PersonName = PersonName, Email = Email, DateOfBirth = DateOfBirth, Gender = (!Enum.IsDefined(typeof(GenderOptions), Gender)) ? null : (GenderOptions)Enum.Parse(typeof(GenderOptions), Gender, true), CountryID = CountryID, Address = Address, ReceiveNewsLetters = ReceiveNewsLetters };
-    //}
+    public PersonUpdateRequest ToPersonUpdateRequest()
+    {
+      return new PersonUpdateRequest() { PersonID = PersonID, PersonName = PersonName, Email = Email, DateOfBirth = DateOfBirth, Gender = (GenderOptions)Enum.Parse(typeof(GenderOptions), Gender, true), CountryID = CountryID, Address = Address, ReceiveNewsLetters = ReceiveNewsLetters };
+    }
   }
 
   public static class PersonExtensions
