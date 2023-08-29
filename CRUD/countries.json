@@ -1,0 +1,22 @@
+[
+  {
+    "CountryID": "57A6D8DA-40FC-48CF-A496-43046AB31C56",
+    "CountryName": "USA"
+  },
+  {
+    "CountryID": "82BE018D-6B88-4731-B27C-EC1C562DE18B",
+    "CountryName": "UK"
+  },
+  {
+    "CountryID": "31D3283B-3E8A-4648-A6D8-1E16C3A2CE0A",
+    "CountryName": "France"
+  },
+  {
+    "CountryID": "1A363258-FB99-4130-AD60-40AED7B18C5A",
+    "CountryName": "Japan"
+  },
+  {
+    "CountryID": "A0AEDDFC-B16E-460B-B814-22409CED41E5",
+    "CountryName": "Australia"
+  }
+]
