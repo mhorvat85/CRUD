@@ -80,7 +80,7 @@ namespace Services
       Person? person = _persons.FirstOrDefault(temp => temp.PersonID == personID);
       if (person == null) return null; 
       
-      return person.ToPersonResponse();
+      return ConvertPersonToPersonResponse(person);
     }
 
     public List<PersonResponse> GetFilteredPersons(string searchBy, string? searchString)
@@ -159,7 +159,7 @@ namespace Services
           matchingPerson.GetType().GetProperty(propertyName)?.SetValue(matchingPerson, otherPropValue);
         }
       }
-      return matchingPerson.ToPersonResponse();
+      return ConvertPersonToPersonResponse(matchingPerson);
     }
 
     public bool DeletePerson(Guid? personID)
