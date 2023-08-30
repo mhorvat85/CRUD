@@ -10,9 +10,9 @@ namespace Services
 {
   public class PersonsService : IPersonsService
   {
-    private readonly PersonsDbContext _db;
+    private readonly ApplicationDbContext _db;
 
-    public PersonsService(PersonsDbContext personsDbContext)
+    public PersonsService(ApplicationDbContext personsDbContext)
     {
       _db = personsDbContext;
     }

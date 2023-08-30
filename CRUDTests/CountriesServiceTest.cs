@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ServiceContracts;
 using ServiceContracts.DTO;
 using Services;
+using EntityFrameworkCoreMock;
 
 namespace CRUDTests
 {
@@ -12,7 +13,14 @@ namespace CRUDTests
 
     public CountriesServiceTest()
     {
-      _countriesService = new CountriesService(new PersonsDbContext(new DbContextOptionsBuilder<PersonsDbContext>().Options));
+      var countriesInitialData = new List<Country>() { };
+
+      DbContextMock<ApplicationDbContext> dbContextMock = new(new DbContextOptionsBuilder<ApplicationDbContext>().Options);
+      dbContextMock.CreateDbSetMock(temp => temp.Countries, countriesInitialData);
+
+      ApplicationDbContext dbContext = dbContextMock.Object;
+
+      _countriesService = new CountriesService(dbContext);
     }
 
     #region AddCountry
