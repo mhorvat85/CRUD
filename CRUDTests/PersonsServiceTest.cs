@@ -3,6 +3,8 @@ using ServiceContracts.DTO;
 using Services;
 using ServiceContracts.Enums;
 using Xunit.Abstractions;
+using Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace CRUDTests
 {
@@ -14,49 +16,49 @@ namespace CRUDTests
 
     public PersonsServiceTest(ITestOutputHelper testOutputHelper)
     {
-      _personsService = new PersonsService(false);
-      _countriesService = new CountriesService(false);
+      _countriesService = new CountriesService(new PersonsDbContext(new DbContextOptionsBuilder<PersonsDbContext>().Options));
+      _personsService = new PersonsService(new PersonsDbContext(new DbContextOptionsBuilder<PersonsDbContext>().Options));
       _testOutputHelper = testOutputHelper;
     }
 
     #region AddPerson
     [Fact]
-    public void AddPerson_NullPerson()
+    public async Task AddPerson_NullPerson()
     {
       //Arrange
       PersonAddRequest? personAddRequest = null;
 
       //Assert
-      Assert.Throws<ArgumentNullException>(() =>
+      await Assert.ThrowsAsync<ArgumentNullException>(async () =>
       {
         //Act
-        _personsService.AddPerson(personAddRequest);
+        await _personsService.AddPerson(personAddRequest);
       });
     }
 
     [Fact]
-    public void AddPerson_NullPersonName()
+    public async Task AddPerson_NullPersonName()
     {
       //Arrange
       PersonAddRequest? personAddRequest = new() { PersonName = null };
 
       //Assert
-      Assert.Throws<ArgumentException>(() =>
+      await Assert.ThrowsAsync<ArgumentException>(async () =>
       {
         //Act
-        _personsService.AddPerson(personAddRequest);
+        await _personsService.AddPerson(personAddRequest);
       });
     }
 
     [Fact]
-    public void AddPerson_ProperPersonDetails()
+    public async Task AddPerson_ProperPersonDetails()
     {
       //Arrange
       PersonAddRequest? personAddRequest = new() { PersonName = "Marko", Email = "marko@example.com", Address = "SomeStreet 1, SomeTown", CountryID = Guid.NewGuid(), Gender = GenderOptions.Male, DateOfBirth = DateTime.Parse("2000-01-01"), ReceiveNewsLetters = true };
 
       //Act
-      PersonResponse person_response_from_add = _personsService.AddPerson(personAddRequest);
-      List<PersonResponse> persons_list = _personsService.GetAllPersons();
+      PersonResponse person_response_from_add = await _personsService.AddPerson(personAddRequest);
+      List<PersonResponse> persons_list = await _personsService.GetAllPersons();
 
       //Assert
       Assert.True(person_response_from_add.PersonID != Guid.Empty);
@@ -66,24 +68,24 @@ namespace CRUDTests
 
     #region GetAllPersons
     [Fact]
-    public void GetAllPersons_EmptyList()
+    public async Task GetAllPersons_EmptyList()
     {
       //Act
-      List<PersonResponse> persons_from_get = _personsService.GetAllPersons();
+      List<PersonResponse> persons_from_get = await _personsService.GetAllPersons();
 
       //Assert
       Assert.Empty(persons_from_get);
     }
 
     [Fact]
-    public void GetAllPersons_AddFewPersons()
+    public async Task GetAllPersons_AddFewPersons()
     {
       //Arrange
       CountryAddRequest country_request_1 = new() { CountryName = "USA" };
       CountryAddRequest country_request_2 = new() { CountryName = "UK" };
 
-      CountryResponse country_response_1 = _countriesService.AddCountry(country_request_1);
-      CountryResponse country_response_2 = _countriesService.AddCountry(country_request_2);
+      CountryResponse country_response_1 = await _countriesService.AddCountry(country_request_1);
+      CountryResponse country_response_2 = await _countriesService.AddCountry(country_request_2);
 
       PersonAddRequest person_request_1 = new() { PersonName = "Marko", Email = "marko@example.com", Address = "SomeStreet 1, SomeTown", CountryID = country_response_1.CountryID, DateOfBirth = DateTime.Parse("2000-01-01"), Gender = GenderOptions.Male, ReceiveNewsLetters = false };
       PersonAddRequest person_request_2 = new() { PersonName = "Mario", Email = "mario@example.com", Address = "SomeStreet 2, SomeTown", CountryID = country_response_2.CountryID, DateOfBirth = DateTime.Parse("2000-01-01"), Gender = GenderOptions.Male, ReceiveNewsLetters = true };
@@ -93,7 +95,7 @@ namespace CRUDTests
 
       foreach (PersonAddRequest person in persons_request)
       {
-        PersonResponse person_response = _personsService.AddPerson(person);
+        PersonResponse person_response = await _personsService.AddPerson(person);
         persons_list_from_add.Add(person_response);
       }
 
@@ -104,7 +106,7 @@ namespace CRUDTests
       }
 
       //Act
-      List<PersonResponse> persons_list_from_get = _personsService.GetAllPersons();
+      List<PersonResponse> persons_list_from_get = await _personsService.GetAllPersons();
 
       _testOutputHelper.WriteLine("Actual:");
       foreach (PersonResponse person_response_from_get in persons_list_from_get)
@@ -122,31 +124,31 @@ namespace CRUDTests
 
     #region GetPersonByPersonID
     [Fact]
-    public void GetPersonByPersonID_NullPersonID()
+    public async Task GetPersonByPersonID_NullPersonID()
     {
       //Arrange
       Guid? personID = null;
 
       //Act
-      PersonResponse? person_response_from_get = _personsService.GetPersonByPersonID(personID);
+      PersonResponse? person_response_from_get = await _personsService.GetPersonByPersonID(personID);
 
       //Assert
       Assert.Null(person_response_from_get);
     }
 
     [Fact]
-    public void GetPersonByPersonID_ValidPersonID()
+    public async Task GetPersonByPersonID_ValidPersonID()
     {
       //Arrange
       CountryAddRequest country_request = new() { CountryName = "Canada" };
-      CountryResponse country_response = _countriesService.AddCountry(country_request);
+      CountryResponse country_response = await _countriesService.AddCountry(country_request);
 
       //Act
       PersonAddRequest person_request = new() { PersonName = "Marko", Email = "marko@example.com", Address = "SomeStreet 1, SomeTown", CountryID = country_response.CountryID, DateOfBirth = DateTime.Parse("2000-01-01"), Gender = GenderOptions.Male, ReceiveNewsLetters = false };
 
-      PersonResponse person_response_from_add = _personsService.AddPerson(person_request);
+      PersonResponse person_response_from_add = await _personsService.AddPerson(person_request);
 
-      PersonResponse? person_response_from_get = _personsService.GetPersonByPersonID(person_response_from_add.PersonID);
+      PersonResponse? person_response_from_get = await _personsService.GetPersonByPersonID(person_response_from_add.PersonID);
 
       //Assert
       Assert.Equal(person_response_from_add, person_response_from_get);
@@ -155,14 +157,14 @@ namespace CRUDTests
 
     #region GetFilteredPersons
     [Fact]
-    public void GetFilteredPersons_EmptySearchText()
+    public async Task GetFilteredPersons_EmptySearchText()
     {
       //Arrange
       CountryAddRequest country_request_1 = new() { CountryName = "USA" };
       CountryAddRequest country_request_2 = new() { CountryName = "UK" };
 
-      CountryResponse country_response_1 = _countriesService.AddCountry(country_request_1);
-      CountryResponse country_response_2 = _countriesService.AddCountry(country_request_2);
+      CountryResponse country_response_1 = await _countriesService.AddCountry(country_request_1);
+      CountryResponse country_response_2 = await _countriesService.AddCountry(country_request_2);
 
       PersonAddRequest person_request_1 = new() { PersonName = "Marko", Email = "marko@example.com", Address = "SomeStreet 1, SomeTown", CountryID = country_response_1.CountryID, DateOfBirth = DateTime.Parse("2000-01-01"), Gender = GenderOptions.Male, ReceiveNewsLetters = false };
       PersonAddRequest person_request_2 = new() { PersonName = "Mario", Email = "mario@example.com", Address = "SomeStreet 2, SomeTown", CountryID = country_response_2.CountryID, DateOfBirth = DateTime.Parse("2000-01-01"), Gender = GenderOptions.Male, ReceiveNewsLetters = true };
@@ -172,7 +174,7 @@ namespace CRUDTests
 
       foreach (PersonAddRequest person in persons_request)
       {
-        PersonResponse person_response = _personsService.AddPerson(person);
+        PersonResponse person_response = await _personsService.AddPerson(person);
         persons_list_from_add.Add(person_response);
       }
 
@@ -183,7 +185,7 @@ namespace CRUDTests
       }
 
       //Act
-      List<PersonResponse> persons_list_from_search = _personsService.GetFilteredPersons(nameof(PersonAddRequest.PersonName), "");
+      List<PersonResponse> persons_list_from_search = await _personsService.GetFilteredPersons(nameof(PersonAddRequest.PersonName), "");
 
       _testOutputHelper.WriteLine("Actual:");
       foreach (PersonResponse person_response_from_get in persons_list_from_search)
@@ -199,14 +201,14 @@ namespace CRUDTests
     }
 
     [Fact]
-    public void GetFilteredPersons_SearchByPersonName()
+    public async Task GetFilteredPersons_SearchByPersonName()
     {
       //Arrange
       CountryAddRequest country_request_1 = new() { CountryName = "USA" };
       CountryAddRequest country_request_2 = new() { CountryName = "UK" };
 
-      CountryResponse country_response_1 = _countriesService.AddCountry(country_request_1);
-      CountryResponse country_response_2 = _countriesService.AddCountry(country_request_2);
+      CountryResponse country_response_1 = await _countriesService.AddCountry(country_request_1);
+      CountryResponse country_response_2 = await _countriesService.AddCountry(country_request_2);
 
       PersonAddRequest person_request_1 = new() { PersonName = "Marko", Email = "marko@example.com", Address = "SomeStreet 1, SomeTown", CountryID = country_response_1.CountryID, DateOfBirth = DateTime.Parse("2000-01-01"), Gender = GenderOptions.Male, ReceiveNewsLetters = false };
       PersonAddRequest person_request_2 = new() { PersonName = "Mario", Email = "mario@example.com", Address = "SomeStreet 2, SomeTown", CountryID = country_response_2.CountryID, DateOfBirth = DateTime.Parse("2000-01-01"), Gender = GenderOptions.Male, ReceiveNewsLetters = true };
@@ -217,7 +219,7 @@ namespace CRUDTests
 
       foreach (PersonAddRequest person in persons_request)
       {
-        PersonResponse person_response = _personsService.AddPerson(person);
+        PersonResponse person_response = await _personsService.AddPerson(person);
         persons_list_from_add.Add(person_response);
       }
 
@@ -228,7 +230,7 @@ namespace CRUDTests
       }
 
       //Act
-      List<PersonResponse> persons_list_from_search = _personsService.GetFilteredPersons(nameof(PersonAddRequest.PersonName), "ma");
+      List<PersonResponse> persons_list_from_search = await _personsService.GetFilteredPersons(nameof(PersonAddRequest.PersonName), "ma");
 
       _testOutputHelper.WriteLine("Actual:");
       foreach (PersonResponse person_response_from_get in persons_list_from_search)
@@ -252,14 +254,14 @@ namespace CRUDTests
 
     #region GetSortedPerson
     [Fact]
-    public void GetSortedPerson()
+    public async Task GetSortedPerson()
     {
       //Arrange
       CountryAddRequest country_request_1 = new() { CountryName = "USA" };
       CountryAddRequest country_request_2 = new() { CountryName = "UK" };
 
-      CountryResponse country_response_1 = _countriesService.AddCountry(country_request_1);
-      CountryResponse country_response_2 = _countriesService.AddCountry(country_request_2);
+      CountryResponse country_response_1 = await _countriesService.AddCountry(country_request_1);
+      CountryResponse country_response_2 = await _countriesService.AddCountry(country_request_2);
 
       PersonAddRequest person_request_1 = new() { PersonName = "Marko", Email = "marko@example.com", Address = "SomeStreet 1, SomeTown", CountryID = country_response_1.CountryID, DateOfBirth = DateTime.Parse("2000-01-01"), Gender = GenderOptions.Male, ReceiveNewsLetters = false };
       PersonAddRequest person_request_2 = new() { PersonName = "Mario", Email = "mario@example.com", Address = "SomeStreet 2, SomeTown", CountryID = country_response_2.CountryID, DateOfBirth = DateTime.Parse("2000-01-01"), Gender = GenderOptions.Male, ReceiveNewsLetters = true };
@@ -270,7 +272,7 @@ namespace CRUDTests
 
       foreach (PersonAddRequest person in persons_request)
       {
-        PersonResponse person_response = _personsService.AddPerson(person);
+        PersonResponse person_response = await _personsService.AddPerson(person);
         persons_list_from_add.Add(person_response);
       }
 
@@ -280,7 +282,7 @@ namespace CRUDTests
         _testOutputHelper.WriteLine(person_response_from_add.ToString());
       }
 
-      List<PersonResponse> allPersons = _personsService.GetAllPersons();
+      List<PersonResponse> allPersons = await _personsService.GetAllPersons();
       //Act
       List<PersonResponse> persons_list_from_sort = _personsService.GetSortedPersons(allPersons, nameof(PersonAddRequest.PersonName), SortOrderOptions.DESC);
 
@@ -301,71 +303,71 @@ namespace CRUDTests
 
     #region UpdatePerson
     [Fact]
-    public void UpdatePerson_NullPerson()
+    public async Task UpdatePerson_NullPerson()
     {
       //Arrange
       PersonUpdateRequest? person_update_request = null;
 
       //Assert
-      Assert.Throws<ArgumentNullException>(() =>
+      await Assert.ThrowsAsync<ArgumentNullException>(async () =>
       {
         //Act
-        _personsService.UpdatePerson(person_update_request);
+        await _personsService.UpdatePerson(person_update_request);
       });
     }
 
     [Fact]
-    public void UpdatePerson_InvalidPersonID()
+    public async Task UpdatePerson_InvalidPersonID()
     {
       //Arrange
       PersonUpdateRequest? person_update_request = new() { PersonID = Guid.NewGuid() };
 
       //Assert
-      Assert.Throws<ArgumentException>(() =>
+      await Assert.ThrowsAsync<ArgumentException>(async () =>
       {
         //Act
-        _personsService.UpdatePerson(person_update_request);
+        await _personsService.UpdatePerson(person_update_request);
       });
     }
 
     [Fact]
-    public void UpdatePerson_NullPersonName()
+    public async Task UpdatePerson_NullPersonName()
     {
       //Arrange
       CountryAddRequest country_add_request = new() { CountryName = "UK" };
-      CountryResponse country_response_from_add = _countriesService.AddCountry(country_add_request);
+      CountryResponse country_response_from_add = await _countriesService.AddCountry(country_add_request);
 
       PersonAddRequest person_add_request = new() { PersonName = "Marko", Email = "marko@example.com", Gender = GenderOptions.Male, CountryID = country_response_from_add.CountryID };
-      PersonResponse person_response_from_add = _personsService.AddPerson(person_add_request);
+      PersonResponse person_response_from_add = await _personsService.AddPerson(person_add_request);
 
       PersonUpdateRequest person_update_request = person_response_from_add.ToPersonUpdateRequest();
       person_update_request.PersonName = null;
 
       //Assert
-      Assert.Throws<ArgumentException>(() =>
+      await Assert.ThrowsAsync<ArgumentException>(async () =>
       {
         //Act
-        _personsService.UpdatePerson(person_update_request);
+        await _personsService.UpdatePerson(person_update_request);
       });
     }
 
     [Fact]
-    public void UpdatePerson_PersonFullDetails()
+    public async Task UpdatePerson_PersonFullDetails()
     {
       //Arrange
       CountryAddRequest country_add_request = new() { CountryName = "UK" };
-      CountryResponse country_response_from_add = _countriesService.AddCountry(country_add_request);
+      CountryResponse country_response_from_add = await _countriesService.AddCountry(country_add_request);
 
       PersonAddRequest person_add_request = new() { PersonName = "Marko", Email = "marko@example.com", Address = "SomeStreet 1, SomeTown", CountryID = country_response_from_add.CountryID, Gender = GenderOptions.Male, ReceiveNewsLetters = false };
-      PersonResponse person_response_from_add = _personsService.AddPerson(person_add_request);
+      PersonResponse person_response_from_add = await _personsService.AddPerson(person_add_request);
 
       PersonUpdateRequest person_update_request = person_response_from_add.ToPersonUpdateRequest();
       person_update_request.PersonName = "Janko";
       person_update_request.Email = "janko@example.com";
 
       //Act
-      PersonResponse person_response_from_update = _personsService.UpdatePerson(person_update_request);
-      PersonResponse? person_response_from_get = _personsService.GetPersonByPersonID(person_response_from_update.PersonID);
+      PersonResponse person_response_from_update = await _personsService.UpdatePerson(person_update_request);
+      PersonResponse? person_response_from_get = await _personsService.GetPersonByPersonID(person_response_from_update.PersonID);
 
       //Assert
       Assert.Equal(person_response_from_update, person_response_from_get);
@@ -374,28 +376,28 @@ namespace CRUDTests
 
     #region DeletePerson
     [Fact]
-    public void DeletePerson_InvalidPersonID()
+    public async Task DeletePerson_InvalidPersonID()
     {
       //Act
-      bool isDeleted = _personsService.DeletePerson(Guid.NewGuid());
+      bool isDeleted = await _personsService.DeletePerson(Guid.NewGuid());
 
       //Assert
       Assert.False(isDeleted);
     }
 
     [Fact]
-    public void DeletePerson_ValidPersonID()
+    public async Task DeletePerson_ValidPersonID()
     {
       //Arrange
       CountryAddRequest country_add_request = new() { CountryName = "USA" };
-      CountryResponse country_response_from_add = _countriesService.AddCountry(country_add_request);
+      CountryResponse country_response_from_add = await _countriesService.AddCountry(country_add_request);
 
       PersonAddRequest person_add_request = new() { PersonName = "Marko", Email = "marko@example.com", Address = "SomeStreet 1, SomeTown", CountryID = country_response_from_add.CountryID, DateOfBirth = DateTime.Parse("2000-01-01"), Gender = GenderOptions.Male, ReceiveNewsLetters = false };
 
-      PersonResponse person_response_from_add = _personsService.AddPerson(person_add_request);
+      PersonResponse person_response_from_add = await _personsService.AddPerson(person_add_request);
 
       //Act
-      bool isDeleted = _personsService.DeletePerson(person_response_from_add.PersonID);
+      bool isDeleted = await _personsService.DeletePerson(person_response_from_add.PersonID);
 
       //Assert
       Assert.True(isDeleted);
