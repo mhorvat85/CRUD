@@ -11,7 +11,7 @@
 <form asp-controller="Persons" asp-action="Index" method="get">
   <div class="box flex">
     <div class="flex-1">
-      <select class="form-input" name="searchBy">
+      <select class="form-input" name="searchBy" aria-label="searchBy">
         @foreach (var field in ViewBag.SearchFields)
         {
           if (field.Key == ViewBag.CurrentSearchBy)
@@ -31,7 +31,7 @@
     </div>
 
     <div class="flex-1">
-      <button class="button button-blue-back">Search</button>
+      <button type="button" class="button button-blue-back">Search</button>
       <a asp-controller="Persons" asp-action="Index" class="link-hover">Clear all</a>
     </div>
   </div>
