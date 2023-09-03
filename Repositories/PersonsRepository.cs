@@ -40,13 +40,13 @@ namespace Repositories
 
     public async Task<Person> UpdatePerson(Person? person)
     {
-      Person? matchingPerson = await _db.Persons.FirstOrDefaultAsync(temp => temp.PersonID == person!.PersonID);
+      Person? matchingPerson = await _db.Persons.Include("Country").FirstOrDefaultAsync(temp => temp.PersonID == person!.PersonID);
 
       if (matchingPerson == null) return person!;
 
       foreach (PropertyInfo prop in matchingPerson.GetType().GetProperties())
       {
-        if (prop.Name != nameof(Person.PersonID))
+        if (prop.Name != nameof(Person.PersonID) && prop.Name != nameof(Person.Country))
         {
           string propertyName = prop.Name;
           var otherPropValue = person!.GetType().GetProperty(propertyName)?.GetValue(person);

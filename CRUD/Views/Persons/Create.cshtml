@@ -99,18 +99,6 @@
         <button class="button button-green-back">Create</button>
 
         <div asp-validation-summary="All" class="text-red"></div>
-
-        @if (ViewBag.Errors != null)
-        {
-          <div class="text-red ml">
-            <ul>
-              @foreach (string error in ViewBag.Errors)
-              {
-                <li class="ml">@error</li>
-              }
-            </ul>
-          </div>
-        }
       </div>
     </div>
   </form>
