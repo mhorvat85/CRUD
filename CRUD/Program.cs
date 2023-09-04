@@ -1,28 +1,19 @@
-using Entities;
-using Microsoft.EntityFrameworkCore;
-using Repositories;
-using RepositoryContracts;
-using ServiceContracts;
-using Services;
+using CRUD.Middleware;
+using CRUD.StartupExtensions;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddControllersWithViews();
-
-builder.Services.AddScoped<ICountriesService, CountriesService>();
-builder.Services.AddScoped<IPersonsService, PersonsService>();
-builder.Services.AddScoped<ICountriesRespository, CountriesRepository>();
-builder.Services.AddScoped<IPersonsRepository, PersonsRepository>();
-
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-{
-  options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-});
+builder.Services.ConfigureServices(builder.Configuration);
 
 var app = builder.Build();
 
 if (builder.Environment.IsDevelopment())
 {
   app.UseDeveloperExceptionPage();
+}
+else
+{
+  app.UseExceptionHandler("/Error");
+  app.UseExceptionHandlingMiddleware();
 }
 
 app.UseStaticFiles();
